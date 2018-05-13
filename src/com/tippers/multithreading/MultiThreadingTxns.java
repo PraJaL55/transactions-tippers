@@ -22,6 +22,20 @@ import com.tippers.dbutil.Properties;
 
 public class MultiThreadingTxns {
 	
+	static int commitCount = 0;
+	
+	public static synchronized int getCommitCount() {
+		return commitCount;
+	}
+	
+	public static synchronized void incrementCommitCount() {
+		commitCount+=1;
+	}
+	
+	public static synchronized void resetCommitCount() {
+		commitCount = 0;
+	}
+
 	protected static Queue<String> jobs = new LinkedList<String>();
 
 	synchronized public static boolean isJobQueueEmpty() {
@@ -44,17 +58,21 @@ public class MultiThreadingTxns {
 			StringBuilder sb = new StringBuilder();
 
 			while ((line = br.readLine()) != null) {
-
+				if(line.contains("SELECT")) {
+					jobs.add(line);
+					continue;
+				}
+				sb.append(line);
 				if(queryCount<Properties.OPERATIONS_PER_TXN) {
-					sb.append(line);
 					queryCount++;
 					continue;
 				}
+				
 				jobs.add(sb.toString());
 				sb.setLength(0);
 				queryCount = 0;
 			}
-			
+			jobs.add(sb.toString());
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -79,18 +97,20 @@ public class MultiThreadingTxns {
 		ThreadFactory threadFactory = Executors.defaultThreadFactory();
 		//creating the ThreadPoolExecutor
 		ThreadPoolExecutor executorPool = new ThreadPoolExecutor(Properties.CORE_POOL_SIZE, Properties.MPL_LEVEL, Properties.KEEP_ALIVE_TIME, TimeUnit.SECONDS,
-				new ArrayBlockingQueue<Runnable>(2), threadFactory, rejectionHandler);
+				new ArrayBlockingQueue<Runnable>(1000000), threadFactory, rejectionHandler);
 
 		//start the monitoring thread
-		MonitorThreads monitor = new MonitorThreads(executorPool, 3);
+		MonitorThreads monitor = new MonitorThreads(executorPool, 1);
 		Thread monitorThread = new Thread(monitor);
 		monitorThread.start();
 		//submit work to the thread pool
-		for(int i=1; i<=Properties.MPL_LEVEL; i++){
-			executorPool.execute(new WorkerThread());
+		int i=0;
+		while(!jobs.isEmpty()){
+			++i;
+			executorPool.execute(new WorkerThread("Thread_" + i, getJobToExecute()));
 		}
 		
-		Thread.sleep(10000);
+		Thread.sleep(1000000);
 		//shut down the pool
 		executorPool.shutdown();
 		//shut down the monitor thread

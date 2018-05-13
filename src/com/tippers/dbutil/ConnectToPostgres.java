@@ -17,7 +17,6 @@ public class ConnectToPostgres {
 			System.exit(0);
 			return null;
 		}
-		System.out.println("Opened database successfully");
 		c.setAutoCommit(autoCommit);
 		return c;
 	}

@@ -12,7 +12,6 @@ public class ConnectToMySql {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			con=DriverManager.getConnection(
 					"jdbc:mysql://localhost:3306/tdm_project","root","");
-			//here sonoo is database name, root is username and password
 			
 		}catch(Exception e){
 			e.printStackTrace();
@@ -20,7 +19,6 @@ public class ConnectToMySql {
 			System.exit(0);
 			return null;
 		}
-		System.out.println("Opened database successfully");
 		con.setAutoCommit(autoCommit);
 		return con;
 	}

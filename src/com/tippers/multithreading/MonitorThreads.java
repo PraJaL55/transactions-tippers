@@ -28,6 +28,8 @@ public class MonitorThreads implements Runnable {
                             this.executor.getTaskCount(),
                             this.executor.isShutdown(),
                             this.executor.isTerminated()));
+            System.out.println("*****Commit Count: " + MultiThreadingTxns.getCommitCount());
+            MultiThreadingTxns.resetCommitCount();
             try {
                 Thread.sleep(seconds*1000);
             } catch (InterruptedException e) {
