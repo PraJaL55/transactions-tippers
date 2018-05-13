@@ -1,4 +1,4 @@
-package ThreadPool;
+package com.tippers.multithreading;
 
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;

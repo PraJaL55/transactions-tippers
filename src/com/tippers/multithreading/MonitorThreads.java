@@ -1,13 +1,13 @@
-package ThreadPool;
+package com.tippers.multithreading;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class MyMonitorThread implements Runnable {
+public class MonitorThreads implements Runnable {
     private ThreadPoolExecutor executor;
     private int seconds;
     private boolean run=true;
 
-    public MyMonitorThread(ThreadPoolExecutor executor, int delay)
+    public MonitorThreads(ThreadPoolExecutor executor, int delay)
     {
         this.executor = executor;
         this.seconds=delay;
