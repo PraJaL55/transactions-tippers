@@ -6,6 +6,8 @@ public class MonitorThreads implements Runnable {
     private ThreadPoolExecutor executor;
     private int seconds;
     private boolean run=true;
+	int secondspassed = 1;
+
 
     public MonitorThreads(ThreadPoolExecutor executor, int delay)
     {
@@ -14,6 +16,7 @@ public class MonitorThreads implements Runnable {
     }
     public void shutdown(){
         this.run=false;
+        
     }
     @Override
     public void run()
@@ -28,13 +31,16 @@ public class MonitorThreads implements Runnable {
                             this.executor.getTaskCount(),
                             this.executor.isShutdown(),
                             this.executor.isTerminated()));
-            System.out.println("*****Commit Count: " + MultiThreadingTxns.getCommitCount());
-            MultiThreadingTxns.resetCommitCount();
+            float commitcount = MultiThreadingTxns.getCommitCount();
+            System.out.println("*****Commit Count: " + commitcount + "\nTransactions/Second: " + commitcount/secondspassed);
+//            MultiThreadingTxns.resetCommitCount();
             try {
                 Thread.sleep(seconds*1000);
+                secondspassed++;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        
     }
 }

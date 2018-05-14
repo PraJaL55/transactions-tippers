@@ -24,15 +24,15 @@ public class MultiThreadingTxns {
 	
 	static int commitCount = 0;
 	
-	public static synchronized int getCommitCount() {
+	public static int getCommitCount() {
 		return commitCount;
 	}
 	
-	public static synchronized void incrementCommitCount() {
+	public static void incrementCommitCount() {
 		commitCount+=1;
 	}
 	
-	public static synchronized void resetCommitCount() {
+	public static void resetCommitCount() {
 		commitCount = 0;
 	}
 
@@ -54,7 +54,7 @@ public class MultiThreadingTxns {
 			File f = new File(Properties.INPUT_FILE);
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			String line = null;
-			int queryCount = 0;
+			int queryCount = 1;
 			StringBuilder sb = new StringBuilder();
 
 			while ((line = br.readLine()) != null) {
@@ -63,16 +63,16 @@ public class MultiThreadingTxns {
 					continue;
 				}
 				sb.append(line);
-				if(queryCount<Properties.OPERATIONS_PER_TXN) {
+				if(queryCount < Properties.OPERATIONS_PER_TXN) {
 					queryCount++;
 					continue;
 				}
-				
 				jobs.add(sb.toString());
 				sb.setLength(0);
-				queryCount = 0;
+				queryCount = 1;
 			}
-			jobs.add(sb.toString());
+			if(sb.length()!=0)
+				jobs.add(sb.toString());
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -88,7 +88,7 @@ public class MultiThreadingTxns {
 		//TODO push X number of operations from queue to the threads. X operations = 1 transaction
 		//TODO figure out how each thread will obtain the X number of operations
 
-		initializeDB();
+		//initializeDB();
 		readInput(jobs);
 
 		//RejectedExecutionHandler implementation

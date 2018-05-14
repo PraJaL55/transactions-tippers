@@ -9,9 +9,9 @@ public class ConnectToMySql {
 	public Connection getConnectionToDB(boolean autoCommit) throws SQLException {
 		Connection con;
 		try{
-			Class.forName("com.mysql.cj.jdbc.Driver");
+			Class.forName("com.mysql.jdbc.Driver");
 			con=DriverManager.getConnection(
-					"jdbc:mysql://localhost:3306/tdm_project","root","");
+					"jdbc:mysql://localhost:3306/tdm_project?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC","root","password");
 			
 		}catch(Exception e){
 			e.printStackTrace();

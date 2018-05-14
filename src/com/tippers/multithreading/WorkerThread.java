@@ -12,53 +12,69 @@ import com.tippers.dbutil.Properties;
 public class WorkerThread implements Runnable {
 	String threadName;
 	String queryString;
-	Connection c;
+	static ConnectToMySql mysqlConnection = new ConnectToMySql();
+	Connection c = null;
 	MultiThreadingTxns mtt = new MultiThreadingTxns();
 
 	public WorkerThread(String name, String string){
 		this.threadName = name;
 		this.queryString = string;
-		
+		//		try {
+		//			if(null==c) 
+		//				c = mysqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
+		//		} catch (SQLException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 	}
 
 	@Override
 	public void run() {
 		try {
-			
-			//queryString = MultiThreadingTxns.getJobToExecute();
-//			while(queryString.startsWith("S")) {
-//				queryString = mtt.getJobToExecute();
-//			}
-			try {
-				if(Properties.CONNECT_TO_PSQL) {
-					ConnectToPostgres psqlConnection = new ConnectToPostgres();
-					c = psqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
-				}
-				else {
-					//connectToMysql();
-					ConnectToMySql mysqlConnection = new ConnectToMySql();
-					c = mysqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			Statement stmt = c.createStatement();
+			if(Properties.CONNECT_TO_PSQL) {
+				ConnectToPostgres psqlConnection = new ConnectToPostgres();
+				c = psqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
+				Statement stmt = c.createStatement();
 
-			if(this.queryString!=null) {
-				if(this.queryString.charAt(0) == 'I') { //INSERT Statement
-					stmt.executeUpdate(this.queryString);
-				} else { //SELECT Query
-					ResultSet rs = stmt.executeQuery(this.queryString.substring(0, this.queryString.indexOf(";") +1));
-					rs.close();
+				if(this.queryString!=null) {
+					if(this.queryString.charAt(0) == 'I') { //INSERT Statement
+						stmt.executeUpdate(this.queryString);
+					} else { //SELECT Query
+						ResultSet rs = stmt.executeQuery(this.queryString.substring(0, this.queryString.indexOf(";")));
+						rs.close();
+					}
 				}
+				stmt.close();
+				c.commit();
+				c.close();
 			}
-			stmt.close();
-			c.commit();
-			c.close();
-			MultiThreadingTxns.incrementCommitCount();
+			else {
+				//connectToMysql();
+				ConnectToMySql mysqlConnection = new ConnectToMySql();
+				c = mysqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
+				Statement stmt = c.createStatement();
+
+				if(this.queryString!=null) {
+					if(this.queryString.charAt(0) == 'I') { //INSERT Statement
+						String[] queryBatch = this.queryString.split(";");
+						for(String query: queryBatch) {
+							stmt.addBatch(query + ";");
+						}
+						stmt.executeBatch();
+					} else { //SELECT Query
+//						ResultSet rs = stmt.executeQuery(this.queryString.substring(0, this.queryString.indexOf(";")));
+//						rs.close();
+					}
+				}
+				stmt.close();
+				c.commit();
+				c.close();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+
+		MultiThreadingTxns.incrementCommitCount();
 	}
 
 	@Override
