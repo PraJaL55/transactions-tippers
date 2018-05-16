@@ -10,7 +10,7 @@ public class ConnectToPostgres {
 		try {
 			Class.forName("org.postgresql.Driver");
 			c = DriverManager
-					.getConnection("jdbc:postgresql://localhost:5432/tdm_project");
+					.getConnection("jdbc:postgresql://localhost:5432/" + Properties.POSTGRES_DB_NAME);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println(e.getClass().getName()+": "+e.getMessage());

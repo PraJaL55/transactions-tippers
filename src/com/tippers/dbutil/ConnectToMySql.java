@@ -11,7 +11,7 @@ public class ConnectToMySql {
 		try{
 			Class.forName("com.mysql.jdbc.Driver");
 			con=DriverManager.getConnection(
-					"jdbc:mysql://localhost:3306/tdm_project?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC","root","password");
+					"jdbc:mysql://localhost:3306/" + Properties.MYSQL_DB_NAME + "?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC","root","password");
 			
 		}catch(Exception e){
 			e.printStackTrace();

@@ -23,7 +23,15 @@ import com.tippers.dbutil.Properties;
 public class MultiThreadingTxns {
 	
 	static int commitCount = 0;
+	static long startTime;
+	static MonitorThreads monitor;
+	static Thread monitorThread;
+	static ThreadPoolExecutor executorPool;
 	
+	public static long getStartTime() {
+		return startTime;
+	}
+
 	public static int getCommitCount() {
 		return commitCount;
 	}
@@ -85,8 +93,8 @@ public class MultiThreadingTxns {
 	public static void main(String args[]) throws InterruptedException{
 
 		//read file line by line and push each line into a queue
-		//TODO push X number of operations from queue to the threads. X operations = 1 transaction
-		//TODO figure out how each thread will obtain the X number of operations
+		//push X number of operations from queue to the threads. X operations = 1 transaction
+		//figure out how each thread will obtain the X number of operations
 
 		//initializeDB();
 		readInput(jobs);
@@ -96,26 +104,21 @@ public class MultiThreadingTxns {
 		//Get the ThreadFactory implementation to use
 		ThreadFactory threadFactory = Executors.defaultThreadFactory();
 		//creating the ThreadPoolExecutor
-		ThreadPoolExecutor executorPool = new ThreadPoolExecutor(Properties.CORE_POOL_SIZE, Properties.MPL_LEVEL, Properties.KEEP_ALIVE_TIME, TimeUnit.SECONDS,
+		executorPool = new ThreadPoolExecutor(Properties.MPL_LEVEL, Properties.MPL_LEVEL, Properties.KEEP_ALIVE_TIME, TimeUnit.SECONDS,
 				new ArrayBlockingQueue<Runnable>(1000000), threadFactory, rejectionHandler);
 
 		//start the monitoring thread
-		MonitorThreads monitor = new MonitorThreads(executorPool, 1);
-		Thread monitorThread = new Thread(monitor);
+		monitor = new MonitorThreads(executorPool, 1);
+		monitorThread = new Thread(monitor);
 		monitorThread.start();
 		//submit work to the thread pool
 		int i=0;
+		startTime = System.nanoTime();
+		
 		while(!jobs.isEmpty()){
 			++i;
 			executorPool.execute(new WorkerThread("Thread_" + i, getJobToExecute()));
 		}
-		
-		Thread.sleep(1000000);
-		//shut down the pool
-		executorPool.shutdown();
-		//shut down the monitor thread
-		Thread.sleep(5000);
-		monitor.shutdown();
 
 	}
 
@@ -140,6 +143,14 @@ public class MultiThreadingTxns {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void stopExecution() throws InterruptedException {
+		Thread.sleep(3000);
+		executorPool.shutdown();
+		//shut down the monitor thread
+		Thread.sleep(3000);
+		monitor.shutdown();
 	}
 
 }

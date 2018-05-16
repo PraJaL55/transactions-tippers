@@ -34,6 +34,8 @@ public class WorkerThread implements Runnable {
 			if(Properties.CONNECT_TO_PSQL) {
 				ConnectToPostgres psqlConnection = new ConnectToPostgres();
 				c = psqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
+				c.setTransactionIsolation(Properties.TXN_ISOLATION);
+
 				Statement stmt = c.createStatement();
 
 				if(this.queryString!=null) {
@@ -52,6 +54,7 @@ public class WorkerThread implements Runnable {
 				//connectToMysql();
 				ConnectToMySql mysqlConnection = new ConnectToMySql();
 				c = mysqlConnection.getConnectionToDB(Properties.AUTO_COMMIT);
+				c.setTransactionIsolation(Properties.TXN_ISOLATION);
 				Statement stmt = c.createStatement();
 
 				if(this.queryString!=null) {
@@ -62,8 +65,10 @@ public class WorkerThread implements Runnable {
 						}
 						stmt.executeBatch();
 					} else { //SELECT Query
-//						ResultSet rs = stmt.executeQuery(this.queryString.substring(0, this.queryString.indexOf(";")));
-//						rs.close();
+						if(!this.queryString.contains("date_trunc")) {
+							ResultSet rs = stmt.executeQuery(this.queryString.substring(0, this.queryString.indexOf(";")));
+							rs.close();
+						}
 					}
 				}
 				stmt.close();
